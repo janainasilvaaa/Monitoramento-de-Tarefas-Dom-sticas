@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Check-in de Tarefas</title>
+  <title>Check-in de Tarefas Domésticas</title>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <style>
     :root {
       --roxo-pastel: #bfa2db;
@@ -14,9 +16,7 @@
       --branco: #fffaf5;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: "Poppins", sans-serif;
@@ -53,15 +53,9 @@
       gap: 12px;
     }
 
-    label {
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
+    label { font-weight: 500; font-size: 0.95rem; }
 
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    input[type="file"] {
+    input[type="text"], input[type="date"], input[type="time"], input[type="file"] {
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -70,9 +64,7 @@
       font-size: 1rem;
     }
 
-    input:focus {
-      border-color: var(--roxo-pastel);
-    }
+    input:focus { border-color: var(--roxo-pastel); }
 
     button {
       background-color: var(--roxo-pastel);
@@ -86,13 +78,9 @@
       transition: 0.3s;
     }
 
-    button:hover {
-      background-color: #a084ca;
-    }
+    button:hover { background-color: #a084ca; }
 
-    .tarefas-lista {
-      margin-top: 25px;
-    }
+    .tarefas-lista { margin-top: 25px; }
 
     .tarefa-item {
       background-color: var(--rosa-pastel);
@@ -106,9 +94,7 @@
       transition: transform 0.2s ease;
     }
 
-    .tarefa-item:hover {
-      transform: scale(1.02);
-    }
+    .tarefa-item:hover { transform: scale(1.02); }
 
     .foto {
       width: 55px;
@@ -119,26 +105,13 @@
       background-color: #fff;
     }
 
-    .tarefa-conteudo {
-      flex: 1;
-    }
+    .tarefa-conteudo { flex: 1; }
 
-    .tarefa-item h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: #6b5b95;
-    }
+    .tarefa-item h3 { margin: 0; font-size: 1rem; color: #6b5b95; }
 
-    .tarefa-item p {
-      margin: 3px 0;
-      font-size: 0.9rem;
-    }
+    .tarefa-item p { margin: 3px 0; font-size: 0.9rem; }
 
-    .sem-tarefas {
-      text-align: center;
-      color: #aaa;
-      font-style: italic;
-    }
+    .sem-tarefas { text-align: center; color: #aaa; font-style: italic; }
 
     .reset-btn {
       background-color: #f4b6c2;
@@ -153,103 +126,101 @@
       font-weight: 600;
     }
 
-    .reset-btn:hover {
-      background-color: #f28ca0;
-      color: white;
-    }
+    .reset-btn:hover { background-color: #f28ca0; color: white; }
 
-    /* 🌸 Responsividade */
     @media (max-width: 768px) {
-      .container {
-        padding: 20px;
-      }
-
-      h1 {
-        font-size: 1.6rem;
-      }
-
-      .tarefa-item {
-        flex-direction: row;
-        align-items: flex-start;
-      }
-
-      .foto {
-        width: 50px;
-        height: 50px;
-      }
-
-      button, input {
-        font-size: 0.95rem;
-      }
+      h1 { font-size: 1.6rem; }
+      .container { padding: 20px; }
+      button, input { font-size: 0.95rem; }
     }
 
     @media (max-width: 480px) {
-      h1 {
-        font-size: 1.4rem;
-      }
-
-      .container {
-        padding: 18px;
-      }
-
-      input, button {
-        font-size: 0.9rem;
-        padding: 9px;
-      }
-
-      .foto {
-        width: 45px;
-        height: 45px;
-      }
+      h1 { font-size: 1.4rem; }
+      input, button { font-size: 0.9rem; padding: 9px; }
+      .foto { width: 45px; height: 45px; }
     }
   </style>
 </head>
 <body>
   <h1>🏠 Check-in de Tarefas Domésticas</h1>
-
   <div class="container">
     <form id="formTarefas">
       <label for="tarefa">Tarefa realizada:</label>
       <input type="text" id="tarefa" placeholder="Ex: Lavar a louça" required>
-
       <label for="nome">Nome de quem realizou:</label>
       <input type="text" id="nome" placeholder="Ex: Ana" required>
-
       <label for="foto">Foto (identificação):</label>
       <input type="file" id="foto" accept="image/*">
-
       <label for="data">Dia:</label>
       <input type="date" id="data" required>
-
       <label for="hora">Horário:</label>
       <input type="time" id="hora" required>
-
       <button type="submit">Registrar Tarefa</button>
     </form>
-
     <div class="tarefas-lista" id="tarefasLista"></div>
     <button class="reset-btn" id="resetBtn">🔄 Resetar tarefas do mês</button>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyAxxxxxx",
+  authDomain: "seuapp.firebaseapp.com",
+  databaseURL: "https://seuapp-default-rtdb.firebaseio.com",
+  projectId: "seuapp",
+  storageBucket: "seuapp.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const form = document.getElementById("formTarefas");
     const lista = document.getElementById("tarefasLista");
     const resetBtn = document.getElementById("resetBtn");
 
-    let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
 
-    function salvarTarefas() {
-      localStorage.setItem("tarefas", JSON.stringify(tarefas));
-    }
+      const tarefa = document.getElementById("tarefa").value.trim();
+      const nome = document.getElementById("nome").value.trim();
+      const data = document.getElementById("data").value;
+      const hora = document.getElementById("hora").value;
+      const fotoInput = document.getElementById("foto");
 
-    function exibirTarefas() {
+      if (!tarefa || !nome) return;
+
+      const novaTarefa = { tarefa, nome, data, hora, foto: "" };
+
+      if (fotoInput.files && fotoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          novaTarefa.foto = event.target.result;
+          push(ref(db, "tarefas"), novaTarefa);
+          form.reset();
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+      } else {
+        push(ref(db, "tarefas"), novaTarefa);
+        form.reset();
+      }
+    });
+
+    function exibirTarefas(snapshot) {
       lista.innerHTML = "";
-      if (tarefas.length === 0) {
+      if (!snapshot.exists()) {
         lista.innerHTML = '<p class="sem-tarefas">Nenhuma tarefa registrada ainda.</p>';
         return;
       }
 
-      tarefas.slice().reverse().forEach((t) => {
+      const dados = snapshot.val();
+      const chaves = Object.keys(dados).reverse();
+
+      chaves.forEach((chave) => {
+        const t = dados[chave];
         const item = document.createElement("div");
         item.classList.add("tarefa-item");
 
@@ -271,48 +242,14 @@
       });
     }
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+    // Atualiza em tempo real 🔄
+    onValue(ref(db, "tarefas"), exibirTarefas);
 
-      const tarefa = document.getElementById("tarefa").value.trim();
-      const nome = document.getElementById("nome").value.trim();
-      const data = document.getElementById("data").value;
-      const hora = document.getElementById("hora").value;
-      const fotoInput = document.getElementById("foto");
-
-      if (!tarefa || !nome) return;
-
-      const novaTarefa = { tarefa, nome, data, hora, foto: "" };
-
-      // Lê a foto enviada
-      if (fotoInput.files && fotoInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          novaTarefa.foto = event.target.result;
-          tarefas.push(novaTarefa);
-          salvarTarefas();
-          exibirTarefas();
-          form.reset();
-        };
-        reader.readAsDataURL(fotoInput.files[0]);
-      } else {
-        tarefas.push(novaTarefa);
-        salvarTarefas();
-        exibirTarefas();
-        form.reset();
-      }
-    });
-
-    // Resetar tarefas do mês
     resetBtn.addEventListener("click", () => {
       if (confirm("Tem certeza que deseja apagar todas as tarefas deste mês?")) {
-        tarefas = [];
-        salvarTarefas();
-        exibirTarefas();
+        remove(ref(db, "tarefas"));
       }
     });
-
-    exibirTarefas();
   </script>
 </body>
 </html>
