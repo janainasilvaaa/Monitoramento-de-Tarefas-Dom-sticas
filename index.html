@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in de Tarefas</title>
+  <style>
+    :root {
+      --roxo-pastel: #bfa2db;
+      --rosa-pastel: #f8e8e8;
+      --azul-pastel: #d0e3f0;
+      --fundo: #f9f6f2;
+      --texto: #444;
+      --branco: #fffaf5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: var(--fundo);
+      color: var(--texto);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-top: 25px;
+      color: #6b5b95;
+      text-align: center;
+      font-size: 1.8rem;
+    }
+
+    .container {
+      background-color: var(--branco);
+      width: 90%;
+      max-width: 600px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      margin: 20px auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="file"] {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #fefcfb;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      border-color: var(--roxo-pastel);
+    }
+
+    button {
+      background-color: var(--roxo-pastel);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #a084ca;
+    }
+
+    .tarefas-lista {
+      margin-top: 25px;
+    }
+
+    .tarefa-item {
+      background-color: var(--rosa-pastel);
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+      border-left: 5px solid var(--roxo-pastel);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .tarefa-item:hover {
+      transform: scale(1.02);
+    }
+
+    .foto {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #a084ca;
+      background-color: #fff;
+    }
+
+    .tarefa-conteudo {
+      flex: 1;
+    }
+
+    .tarefa-item h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #6b5b95;
+    }
+
+    .tarefa-item p {
+      margin: 3px 0;
+      font-size: 0.9rem;
+    }
+
+    .sem-tarefas {
+      text-align: center;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    .reset-btn {
+      background-color: #f4b6c2;
+      color: #444;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .reset-btn:hover {
+      background-color: #f28ca0;
+      color: white;
+    }
+
+    /* 🌸 Responsividade */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .tarefa-item {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .foto {
+        width: 50px;
+        height: 50px;
+      }
+
+      button, input {
+        font-size: 0.95rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .container {
+        padding: 18px;
+      }
+
+      input, button {
+        font-size: 0.9rem;
+        padding: 9px;
+      }
+
+      .foto {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🏠 Check-in de Tarefas Domésticas</h1>
+
+  <div class="container">
+    <form id="formTarefas">
+      <label for="tarefa">Tarefa realizada:</label>
+      <input type="text" id="tarefa" placeholder="Ex: Lavar a louça" required>
+
+      <label for="nome">Nome de quem realizou:</label>
+      <input type="text" id="nome" placeholder="Ex: Ana" required>
+
+      <label for="foto">Foto (identificação):</label>
+      <input type="file" id="foto" accept="image/*">
+
+      <label for="data">Dia:</label>
+      <input type="date" id="data" required>
+
+      <label for="hora">Horário:</label>
+      <input type="time" id="hora" required>
+
+      <button type="submit">Registrar Tarefa</button>
+    </form>
+
+    <div class="tarefas-lista" id="tarefasLista"></div>
+    <button class="reset-btn" id="resetBtn">🔄 Resetar tarefas do mês</button>
+  </div>
+
+  <script>
+    const form = document.getElementById("formTarefas");
+    const lista = document.getElementById("tarefasLista");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
+
+    function salvarTarefas() {
+      localStorage.setItem("tarefas", JSON.stringify(tarefas));
+    }
+
+    function exibirTarefas() {
+      lista.innerHTML = "";
+      if (tarefas.length === 0) {
+        lista.innerHTML = '<p class="sem-tarefas">Nenhuma tarefa registrada ainda.</p>';
+        return;
+      }
+
+      tarefas.slice().reverse().forEach((t) => {
+        const item = document.createElement("div");
+        item.classList.add("tarefa-item");
+
+        const foto = document.createElement("img");
+        foto.classList.add("foto");
+        foto.src = t.foto || "https://via.placeholder.com/50x50.png?text=Foto";
+
+        const conteudo = document.createElement("div");
+        conteudo.classList.add("tarefa-conteudo");
+        conteudo.innerHTML = `
+          <h3>${t.tarefa}</h3>
+          <p><strong>Por:</strong> ${t.nome}</p>
+          <p><strong>Data:</strong> ${t.data} &nbsp;&nbsp; <strong>Hora:</strong> ${t.hora}</p>
+        `;
+
+        item.appendChild(foto);
+        item.appendChild(conteudo);
+        lista.appendChild(item);
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const tarefa = document.getElementById("tarefa").value.trim();
+      const nome = document.getElementById("nome").value.trim();
+      const data = document.getElementById("data").value;
+      const hora = document.getElementById("hora").value;
+      const fotoInput = document.getElementById("foto");
+
+      if (!tarefa || !nome) return;
+
+      const novaTarefa = { tarefa, nome, data, hora, foto: "" };
+
+      // Lê a foto enviada
+      if (fotoInput.files && fotoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          novaTarefa.foto = event.target.result;
+          tarefas.push(novaTarefa);
+          salvarTarefas();
+          exibirTarefas();
+          form.reset();
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+      } else {
+        tarefas.push(novaTarefa);
+        salvarTarefas();
+        exibirTarefas();
+        form.reset();
+      }
+    });
+
+    // Resetar tarefas do mês
+    resetBtn.addEventListener("click", () => {
+      if (confirm("Tem certeza que deseja apagar todas as tarefas deste mês?")) {
+        tarefas = [];
+        salvarTarefas();
+        exibirTarefas();
+      }
+    });
+
+    exibirTarefas();
+  </script>
+</body>
+</html>
