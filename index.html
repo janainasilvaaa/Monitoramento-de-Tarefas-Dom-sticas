@@ -1,255 +1,272 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Check-in de Tarefas Domésticas</title>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
-  <style>
-    :root {
-      --roxo-pastel: #bfa2db;
-      --rosa-pastel: #f8e8e8;
-      --azul-pastel: #d0e3f0;
-      --fundo: #f9f6f2;
-      --texto: #444;
-      --branco: #fffaf5;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in de Tarefas Domésticas | Local</title>
+    
+    <style>
+        /* CSS para Estilo Pastel e Responsividade */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-    * { box-sizing: border-box; }
+        :root {
+            /* Tons Pastéis */
+            --roxo-pastel: #bfa2db; /* Cor principal */
+            --rosa-pastel: #f8e8e8; /* Fundo de item */
+            --fundo: #f9f6f2; /* Fundo da página */
+            --texto: #444;
+            --branco: #fffaf5;
+        }
 
-    body {
-      font-family: "Poppins", sans-serif;
-      background-color: var(--fundo);
-      color: var(--texto);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
+        * { box-sizing: border-box; }
 
-    h1 {
-      margin-top: 25px;
-      color: #6b5b95;
-      text-align: center;
-      font-size: 1.8rem;
-    }
+        body {
+            font-family: "Poppins", sans-serif;
+            background-color: var(--fundo);
+            color: var(--texto);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    .container {
-      background-color: var(--branco);
-      width: 90%;
-      max-width: 600px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 25px;
-      margin: 20px auto;
-    }
+        h1 {
+            margin-top: 25px;
+            color: #6b5b95;
+            text-align: center;
+            font-size: 1.8rem;
+        }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+        .container {
+            background-color: var(--branco);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin: 20px auto;
+        }
 
-    label { font-weight: 500; font-size: 0.95rem; }
+        /* Formulário */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    input[type="text"], input[type="date"], input[type="time"], input[type="file"] {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: #fefcfb;
-      outline: none;
-      font-size: 1rem;
-    }
+        label { font-weight: 500; font-size: 0.95rem; }
 
-    input:focus { border-color: var(--roxo-pastel); }
+        input[type="text"], input[type="date"], input[type="time"] {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #fefcfb;
+            outline: none;
+            font-size: 1rem;
+        }
 
-    button {
-      background-color: var(--roxo-pastel);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+        input:focus { border-color: var(--roxo-pastel); }
 
-    button:hover { background-color: #a084ca; }
+        /* Botão de Registrar */
+        button {
+            background-color: var(--roxo-pastel);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-    .tarefas-lista { margin-top: 25px; }
+        button:hover { background-color: #a084ca; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
 
-    .tarefa-item {
-      background-color: var(--rosa-pastel);
-      border-radius: 10px;
-      padding: 12px 15px;
-      margin-bottom: 12px;
-      border-left: 5px solid var(--roxo-pastel);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform 0.2s ease;
-    }
+        /* Lista de Tarefas */
+        .tarefas-lista { margin-top: 25px; }
 
-    .tarefa-item:hover { transform: scale(1.02); }
+        .tarefa-item {
+            background-color: var(--rosa-pastel);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-left: 5px solid var(--roxo-pastel);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s ease;
+        }
 
-    .foto {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #a084ca;
-      background-color: #fff;
-    }
+        .tarefa-item:hover { transform: scale(1.02); }
 
-    .tarefa-conteudo { flex: 1; }
+        .icone-placeholder {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #a084ca;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
 
-    .tarefa-item h3 { margin: 0; font-size: 1rem; color: #6b5b95; }
+        .tarefa-conteudo { flex: 1; }
 
-    .tarefa-item p { margin: 3px 0; font-size: 0.9rem; }
+        .tarefa-item h3 { margin: 0; font-size: 1rem; color: #6b5b95; }
 
-    .sem-tarefas { text-align: center; color: #aaa; font-style: italic; }
+        .tarefa-item p { margin: 3px 0; font-size: 0.9rem; }
 
-    .reset-btn {
-      background-color: #f4b6c2;
-      color: #444;
-      border: none;
-      padding: 10px;
-      border-radius: 10px;
-      width: 100%;
-      margin-top: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-weight: 600;
-    }
+        .sem-tarefas { text-align: center; color: #aaa; font-style: italic; }
 
-    .reset-btn:hover { background-color: #f28ca0; color: white; }
+        /* Botão de Reset */
+        .reset-btn {
+            background-color: #f4b6c2;
+            color: #444;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+        }
 
-    @media (max-width: 768px) {
-      h1 { font-size: 1.6rem; }
-      .container { padding: 20px; }
-      button, input { font-size: 0.95rem; }
-    }
+        .reset-btn:hover { background-color: #f28ca0; color: white; }
 
-    @media (max-width: 480px) {
-      h1 { font-size: 1.4rem; }
-      input, button { font-size: 0.9rem; padding: 9px; }
-      .foto { width: 45px; height: 45px; }
-    }
-  </style>
+        /* Responsividade */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.6rem; }
+            .container { padding: 20px; }
+            button, input { font-size: 0.95rem; }
+            .tarefa-item p { font-size: 0.85rem; }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.4rem; }
+            input, button { font-size: 0.9rem; padding: 9px; }
+            .icone-placeholder { width: 45px; height: 45px; font-size: 20px; }
+            .tarefa-item h3 { font-size: 0.9rem; }
+        }
+    </style>
 </head>
-<body>
-  <h1>🏠 Check-in de Tarefas Domésticas</h1>
-  <div class="container">
-    <form id="formTarefas">
-      <label for="tarefa">Tarefa realizada:</label>
-      <input type="text" id="tarefa" placeholder="Ex: Lavar a louça" required>
-      <label for="nome">Nome de quem realizou:</label>
-      <input type="text" id="nome" placeholder="Ex: Ana" required>
-      <label for="foto">Foto (identificação):</label>
-      <input type="file" id="foto" accept="image/*">
-      <label for="data">Dia:</label>
-      <input type="date" id="data" required>
-      <label for="hora">Horário:</label>
-      <input type="time" id="hora" required>
-      <button type="submit">Registrar Tarefa</button>
-    </form>
-    <div class="tarefas-lista" id="tarefasLista"></div>
-    <button class="reset-btn" id="resetBtn">🔄 Resetar tarefas do mês</button>
-  </div>
+<body onload="carregarTarefas()">
+    <h1>🏠 Check-in de Tarefas Domésticas</h1>
+    
+    <div class="container">
+        <form id="formTarefas">
+            <label for="tarefa">Tarefa realizada:</label>
+            <input type="text" id="tarefa" placeholder="Ex: Lavar a louça" required>
+            <label for="nome">Nome de quem realizou:</label>
+            <input type="text" id="nome" placeholder="Ex: Ana" required>
+            <label for="data">Dia:</label>
+            <input type="date" id="data" required>
+            <label for="hora">Horário:</label>
+            <input type="time" id="hora" required>
+            <button type="submit">Registrar Tarefa</button>
+        </form>
+        
+        <div class="tarefas-lista" id="tarefasLista"></div>
+        
+        <button class="reset-btn" id="resetBtn">🔄 Resetar tarefas do mês</button>
+    </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    <script>
+        const STORAGE_KEY = 'tarefas_domesticas';
+        const form = document.getElementById("formTarefas");
+        const lista = document.getElementById("tarefasLista");
+        const resetBtn = document.getElementById("resetBtn");
 
-    const firebaseConfig = {
-  apiKey: "AIzaSyAxxxxxx",
-  authDomain: "seuapp.firebaseapp.com",
-  databaseURL: "https://seuapp-default-rtdb.firebaseio.com",
-  projectId: "seuapp",
-  storageBucket: "seuapp.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
-};
+        // Função para carregar as tarefas do LocalStorage
+        function carregarTarefas() {
+            const tarefasJSON = localStorage.getItem(STORAGE_KEY);
+            let tarefas = tarefasJSON ? JSON.parse(tarefasJSON) : [];
+            
+            exibirTarefas(tarefas);
+            return tarefas;
+        }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        // Função para salvar as tarefas no LocalStorage
+        function salvarTarefas(tarefas) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tarefas));
+            exibirTarefas(tarefas);
+        }
 
-    const form = document.getElementById("formTarefas");
-    const lista = document.getElementById("tarefasLista");
-    const resetBtn = document.getElementById("resetBtn");
+        // Função para renderizar a lista na tela
+        function exibirTarefas(tarefas) {
+            lista.innerHTML = "";
+            
+            if (tarefas.length === 0) {
+                lista.innerHTML = '<p class="sem-tarefas">Nenhuma tarefa registrada ainda.</p>';
+                return;
+            }
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+            // Exibe as tarefas da mais recente para a mais antiga
+            const tarefasInvertidas = [...tarefas].reverse(); 
 
-      const tarefa = document.getElementById("tarefa").value.trim();
-      const nome = document.getElementById("nome").value.trim();
-      const data = document.getElementById("data").value;
-      const hora = document.getElementById("hora").value;
-      const fotoInput = document.getElementById("foto");
+            tarefasInvertidas.forEach((t) => {
+                const item = document.createElement("div");
+                item.classList.add("tarefa-item");
 
-      if (!tarefa || !nome) return;
+                // Ícone/Placeholder (já que não há foto sem banco de dados na nuvem)
+                const icone = document.createElement("div");
+                icone.classList.add("icone-placeholder");
+                icone.textContent = t.nome[0].toUpperCase(); 
 
-      const novaTarefa = { tarefa, nome, data, hora, foto: "" };
+                const conteudo = document.createElement("div");
+                conteudo.classList.add("tarefa-conteudo");
+                
+                conteudo.innerHTML = `
+                    <h3>${t.tarefa}</h3>
+                    <p><strong>Por:</strong> ${t.nome}</p>
+                    <p><strong>Data:</strong> ${t.data} &nbsp;&nbsp; <strong>Hora:</strong> ${t.hora}</p>
+                `;
 
-      if (fotoInput.files && fotoInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          novaTarefa.foto = event.target.result;
-          push(ref(db, "tarefas"), novaTarefa);
-          form.reset();
-        };
-        reader.readAsDataURL(fotoInput.files[0]);
-      } else {
-        push(ref(db, "tarefas"), novaTarefa);
-        form.reset();
-      }
-    });
+                item.appendChild(icone);
+                item.appendChild(conteudo);
+                lista.appendChild(item);
+            });
+        }
 
-    function exibirTarefas(snapshot) {
-      lista.innerHTML = "";
-      if (!snapshot.exists()) {
-        lista.innerHTML = '<p class="sem-tarefas">Nenhuma tarefa registrada ainda.</p>';
-        return;
-      }
+        // Evento de Submissão do Formulário
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-      const dados = snapshot.val();
-      const chaves = Object.keys(dados).reverse();
+            const tarefa = document.getElementById("tarefa").value.trim();
+            const nome = document.getElementById("nome").value.trim();
+            const data = document.getElementById("data").value;
+            const hora = document.getElementById("hora").value;
 
-      chaves.forEach((chave) => {
-        const t = dados[chave];
-        const item = document.createElement("div");
-        item.classList.add("tarefa-item");
+            if (!tarefa || !nome || !data || !hora) return;
 
-        const foto = document.createElement("img");
-        foto.classList.add("foto");
-        foto.src = t.foto || "https://via.placeholder.com/50x50.png?text=Foto";
+            const novaTarefa = { 
+                tarefa, 
+                nome, 
+                data, 
+                hora, 
+                timestamp: Date.now() // Ajuda na ordenação
+            };
+            
+            const tarefas = carregarTarefas();
+            tarefas.push(novaTarefa);
+            
+            salvarTarefas(tarefas);
+            form.reset();
+        });
 
-        const conteudo = document.createElement("div");
-        conteudo.classList.add("tarefa-conteudo");
-        conteudo.innerHTML = `
-          <h3>${t.tarefa}</h3>
-          <p><strong>Por:</strong> ${t.nome}</p>
-          <p><strong>Data:</strong> ${t.data} &nbsp;&nbsp; <strong>Hora:</strong> ${t.hora}</p>
-        `;
+        // Botão de Reset
+        resetBtn.addEventListener("click", () => {
+            if (confirm("🚨 ATENÇÃO! Tem certeza que deseja APAGAR todas as tarefas registradas? Esta ação é irreversível localmente.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                carregarTarefas(); // Recarrega a lista vazia
+                alert("Todas as tarefas foram resetadas.");
+            }
+        });
 
-        item.appendChild(foto);
-        item.appendChild(conteudo);
-        lista.appendChild(item);
-      });
-    }
-
-    // Atualiza em tempo real 🔄
-    onValue(ref(db, "tarefas"), exibirTarefas);
-
-    resetBtn.addEventListener("click", () => {
-      if (confirm("Tem certeza que deseja apagar todas as tarefas deste mês?")) {
-        remove(ref(db, "tarefas"));
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
